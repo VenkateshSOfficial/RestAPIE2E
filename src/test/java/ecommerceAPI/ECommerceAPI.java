@@ -5,6 +5,7 @@ import static io.restassured.RestAssured.given;
 import java.io.File;
 import java.util.*;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -19,10 +20,13 @@ public class ECommerceAPI {
 	AddProductResponse productResponse;
 	CreateOrderResponse createOrderResponse;
 	DeleteProductResponse deleteProductResponse;
+	ViewOrderResponse viewOrderResponse;
+
 	private String userId;
 	private String token;
 	String productId;
 	List<String> orderIds;
+	String id;
 
 	public String getUserId(){
 		return userId;
@@ -102,6 +106,16 @@ public class ECommerceAPI {
 		System.out.println("The order id obtained is : " + getOrderId());
 	}
 	@Test(dependsOnMethods = "createOrderRequest")
+	public void viewOrders(){
+		viewOrderResponse = given().spec(requestSpecification.contentType("application/json")).header(
+				"Authorization", getToken()).queryParam("id", getOrderId()).when().get(
+				"/api/ecom/order/get-orders-details").then().assertThat().statusCode(200).extract().response().as(
+				ViewOrderResponse.class);
+
+		id = viewOrderResponse.getData().get_id();
+		Assert.assertEquals(id,getOrderId());
+	}
+	@Test(dependsOnMethods = "viewOrders")
 	public void deleteOrders(){
 		deleteProductResponse = given().spec(
 				requestSpecification.contentType("application/json")).header("Authorization", getToken()).pathParam(
